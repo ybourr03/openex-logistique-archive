@@ -1,0 +1,112 @@
+/* Jenkins pipeline to make a release from a merge from dev to master */
+pipeline {
+    agent any
+
+    environment {
+        TAG_VERSION = ""
+        NEXT_VERSION = ""
+        DEV_BRANCH = "dev"
+        RELEASE_BRANCH = "master"
+    }
+
+    // This script is launched on merge request correctly done
+    // So the current branch should be the dev branch
+    stages{
+        stage('init') {
+            steps {
+                /*
+                 * We want to start really clean, so wipe the entire workspace including local tags and branches,
+                 * which could be different from the remote)
+                 */
+                deleteDir()
+                /*
+                 * Get the sources now that everything has been deleted
+                 */
+                checkout scm
+            }
+        }
+        stage('Get versions from pom') {
+            steps {
+                echo sh(returnStdout: true, script: 'env')
+                script {
+                    def pomProperties = readMavenPom file: 'pom.xml'
+                    TAG_VERSION = pomProperties.getVersion().take(pomProperties.getVersion().indexOf("-"))
+
+                    def nextMinorVersion = TAG_VERSION.drop(TAG_VERSION.lastIndexOf(".") + 1).toInteger() + 1
+                    NEXT_VERSION = TAG_VERSION.take(TAG_VERSION.lastIndexOf(".") + 1) + nextMinorVersion + "-SNAPSHOT"
+
+                    // Set default params when the build is launched manually (instead of Gitlab event)
+                    if (DEV_BRANCH == "null") {
+                        DEV_BRANCH = "dev"
+                    }
+                    if (RELEASE_BRANCH == "null") {
+                        RELEASE_BRANCH = "master"
+                    }
+                }
+
+                echo "The generated tag will be: ${TAG_VERSION}"
+                echo "The next version will be ${NEXT_VERSION}"
+            }
+        }
+
+        stage('Checkout release branch') {
+            steps{
+                withCredentials([
+                        [$class: 'UsernamePasswordMultiBinding', credentialsId: 'GitHubJenkinsAccessToken', usernameVariable: 'GITHUB_LOGIN', passwordVariable: 'GITHUB_TOKEN']
+                ]) {
+                    sh("git remote set-url origin https://${GITHUB_LOGIN}:${GITHUB_TOKEN}@github.com/dktunited/openex-logistique.git")
+                    sh("git checkout ${RELEASE_BRANCH}")
+                    sh("git branch --set-upstream-to=origin/${RELEASE_BRANCH} ${RELEASE_BRANCH}")
+                    sh("git pull")
+                }
+            }
+        }
+
+        stage('Set new version'){
+            steps{
+                withMaven(options: [artifactsPublisher(disabled: true)], jdk: 'jdk8', maven: 'Maven 3.5') {
+                    sh "mvn versions:set versions:commit -DnewVersion=${TAG_VERSION}"
+                }
+            }
+        }
+        stage('Packaging') {
+            steps {
+                withMaven(options: [artifactsPublisher(disabled: false)], jdk: 'jdk8', maven: 'Maven 3.5') {
+                    sh 'mvn clean install deploy'
+                }
+            }
+        }
+        stage('Commit release and tag version') {
+            steps {
+                withCredentials([
+                        [$class: 'UsernamePasswordMultiBinding', credentialsId: 'GitHubJenkinsAccessToken', usernameVariable: 'GITHUB_LOGIN', passwordVariable: 'GITHUB_TOKEN']
+                ]) {
+                    sh("git commit -am \"Release version ${TAG_VERSION}\"")
+                    sh("git tag ${TAG_VERSION}")
+                    sh("git push origin ${RELEASE_BRANCH} tag ${TAG_VERSION}")
+                }
+            }
+        }
+        stage('Prepare next version') {
+            steps {
+                withCredentials([
+                        [$class: 'UsernamePasswordMultiBinding', credentialsId: 'GitHubJenkinsAccessToken', usernameVariable: 'GITHUB_LOGIN', passwordVariable: 'GITHUB_TOKEN']
+                ]) {
+                    sh("git checkout ${DEV_BRANCH}")
+                    sh("git branch --set-upstream-to=origin/${DEV_BRANCH} ${DEV_BRANCH}")
+                    sh("git pull")
+                    // redo the tag commit so we dont have merge request problem after
+                    withMaven(options: [artifactsPublisher(disabled: true)], jdk: 'jdk8', maven: 'Maven 3.5') {
+                        sh "mvn versions:set versions:commit -DnewVersion=${TAG_VERSION}"
+                    }
+                    sh("git commit -am \"Release version ${TAG_VERSION}\"")
+                    withMaven(options: [artifactsPublisher(disabled: false)], jdk: 'jdk8', maven: 'Maven 3.5') {
+                        sh "mvn versions:set versions:commit -DnewVersion=${NEXT_VERSION}"
+                    }
+                    sh("git commit -am \"Prepare next version ${NEXT_VERSION}\"")
+                    sh("git push origin ${DEV_BRANCH}")
+                }
+            }
+        }
+    }
+}

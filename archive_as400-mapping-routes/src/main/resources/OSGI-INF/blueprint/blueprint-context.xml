@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		   xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0"
+		   xsi:schemaLocation="
+		   	http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+       	   	http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0 http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0/blueprint-cm.xsd
+			http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd">
+
+	<cm:property-placeholder id="decathlon.convertXmlToFlatfile.myroute" persistent-id="decathlon.convertXmlToFlatfile.myroute" update-strategy="reload">
+		<cm:default-properties>
+			<cm:property name="jms.input.queue" value="QUEUE.TO.LOG"/>
+			<cm:property name="jms.concurrentConsumers" value="1"/>
+			<cm:property name="jms.maxConcurrentConsumers" value="4"/>
+		</cm:default-properties>
+	</cm:property-placeholder>
+
+	<reference id="connectionFactory" interface="javax.jms.ConnectionFactory" filter="(osgi.jndi.service.name=jms/broker-local)" />
+
+	<bean id="jmsConfig" class="org.apache.camel.component.jms.JmsConfiguration">
+		<property name="connectionFactory" ref="connectionFactory"/>
+	</bean>
+
+	<bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
+		<argument ref="jmsConfig"/>
+	</bean>
+	
+	<bean id="message" class="com.oxit.flow.message.Message" />
+	
+	<bean id="dlqRoute" class="com.oxit.flow.logistique.as400.mapping.route.DlqRoute" />
+
+	<bean id="LOGSortGroupOfStoresMapping" class="com.oxit.flow.logistique.as400.mapping.route.MappingToAs400Format">
+		<property name="inputQueue" value="LOGSortGroupOfStores.mapping.input" />
+		<property name="outputQueue" value="LOGSortGroupOfStores" />
+		<property name="formatClass" value="com.oxit.flow.logistique.as400.mapping.model.LOGSortGroupOfStoresList"/>
+		<property name="fileName" value="STQGCPP" />
+	</bean>
+	
+	<bean id="LOGSortMaterialMachineMapping" class="com.oxit.flow.logistique.as400.mapping.route.MappingToAs400Format">
+		<property name="inputQueue" value="LOGSortMaterialMachine.mapping.input" />
+		<property name="outputQueue" value="LOGSortMaterialMachine" />
+		<property name="formatClass" value="com.oxit.flow.logistique.as400.mapping.model.LOGSortMaterialMachineList"/>
+		<property name="fileName" value="STQICPP" />
+	</bean>
+	
+	<bean id="LOGSortWarehouseMachineMapping" class="com.oxit.flow.logistique.as400.mapping.route.MappingToAs400Format">
+		<property name="inputQueue" value="LOGSortWarehouseMachine.mapping.input" />
+		<property name="outputQueue" value="LOGSortWarehouseMachine" />
+		<property name="formatClass" value="com.oxit.flow.logistique.as400.mapping.model.LOGSortWarehouseMachineList"/>
+		<property name="fileName" value="STQHCPP" />
+	</bean>
+	
+	<camelContext id="Mapping-to-AS400" xmlns="http://camel.apache.org/schema/blueprint">
+		<propertyPlaceholder id="properties" location="blueprint:decathlon.logistique.as400.mapping"/>
+		<routeBuilder ref="dlqRoute" />
+		<routeBuilder ref="LOGSortGroupOfStoresMapping" />
+		<routeBuilder ref="LOGSortMaterialMachineMapping" />
+		<routeBuilder ref="LOGSortWarehouseMachineMapping" />
+	</camelContext>
+</blueprint>

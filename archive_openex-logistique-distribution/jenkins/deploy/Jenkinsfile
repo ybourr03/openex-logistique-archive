@@ -1,0 +1,68 @@
+package deploy
+
+pipeline {
+
+ agent any
+
+    environment {
+        MAVEN_ARTIFACT_ID = readMavenPom().getArtifactId()
+        VERSION = readMavenPom().getVersion()
+    }
+
+    stages {
+        stage('Check Java'){
+            steps{
+                withMaven(options: [artifactsPublisher(disabled: true)], jdk: 'jdk8', maven: 'Maven 3.5') {
+                    sh 'mvn -v'
+                }
+            }
+        }
+        stage('Clean'){
+            steps{
+                withMaven(options: [artifactsPublisher(disabled: true)], jdk: 'jdk8', maven: 'Maven 3.5') {
+                    sh 'mvn clean'
+                }
+            }
+        }
+        stage('packaging back') {
+            steps {
+                withMaven(options: [artifactsPublisher(disabled: true)], jdk: 'jdk8', maven: 'Maven 3.5') {
+                    sh 'mvn install'
+                }
+            }
+        }
+        
+       stage('Sonar analysis') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'SONAR_OPENEX_LOGISTIQUE', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+                    script {
+                        def sonarProject = "openex-logistique"
+                        def sonarOrganization = "dktunited"
+                        def sonarHostUrl = "https://sonarcloud.io"
+                        	
+                         withMaven(options: [artifactsPublisher(disabled: true)], jdk: 'jdk8', maven: 'Maven 3.5') {
+                    	  sh """
+                                mvn sonar:sonar -Dsonar.projectKey=${sonarProject} \
+                                                -Dsonar.organization=${sonarOrganization} \
+                                                -Dsonar.host.url=${sonarHostUrl} \
+                                                -Dsonar.login=${USERNAME} \
+                                                -Dsonar.password=  \
+                            """
+							}                      
+                        }
+                    }
+                }
+            }
+
+        stage('Deploy artifact') {
+        	when{
+       			 branch 'dev'
+       		 	}
+            steps {
+                withMaven(options: [artifactsPublisher(disabled: true)], jdk: 'jdk8', maven: 'Maven 3.5') {
+                    sh 'mvn deploy -DskipTests'
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:ext="http://aries.apache.org/blueprint/xmlns/blueprint-ext/v1.0.0" >
+
+    <ext:property-placeholder>
+        <ext:location>file:etc/decathlon.connection.factory.cfg</ext:location>
+    </ext:property-placeholder>
+
+    <bean id="activemqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL" value="${local.broker.connection}" />
+        <property name="userName" value="karaf" />
+        <property name="password" value="karaf" />
+    </bean>
+
+    <bean id="pooledConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory">
+        <property name="maxConnections" value="8" />
+        <property name="connectionFactory" ref="activemqConnectionFactory" />
+    </bean>
+
+    <bean id="resourceManager" class="org.apache.activemq.pool.ActiveMQResourceManager" init-method="recoverResource">
+        <property name="transactionManager" ref="transactionManager" />
+        <property name="connectionFactory" ref="activemqConnectionFactory" />
+        <property name="resourceName" value="activemq.localhost" />
+    </bean>
+
+    <reference id="transactionManager" interface="javax.transaction.TransactionManager" />
+
+    <service ref="pooledConnectionFactory" interface="javax.jms.ConnectionFactory">
+        <service-properties>
+            <entry key="name" value="broker-traces" />
+            <entry key="osgi.jndi.service.name" value="jms/broker-traces" />
+        </service-properties>
+    </service>
+
+</blueprint>

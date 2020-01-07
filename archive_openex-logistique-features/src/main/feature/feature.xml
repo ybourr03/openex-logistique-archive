@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features name="decathlon-${project.artifactId}-${project.version}" xmlns="http://karaf.apache.org/xmlns/features/v1.3.0">
+    <repository>mvn:org.apache.activemq/activemq-karaf/${activemq.version}/xml/features</repository>
+    <repository>mvn:org.apache.camel.karaf/apache-camel/${camel.version}/xml/features</repository>
+    <repository>mvn:com.oxit.flow.camel-fwk/fwk-features/${decathlon.fwk.version}/xml/features</repository>
+
+    <feature name="as400-connection-factories" version="${project.version}" install="auto">
+        <details>Create and exposes the AS400 connection factories</details>
+
+        <feature>jndi</feature>
+        <feature>jms</feature>
+        <feature version="${camel.version}">camel-blueprint</feature>
+        <feature version="${camel.version}">camel-core</feature>
+        <feature version="${camel.version}">camel-jms</feature>
+        <feature version="${decathlon.fwk.version}">fwk-component-wmq</feature>
+
+        <bundle start-level="50">mvn:${project.groupId}/as400-connection-factories/${project.version}</bundle>
+        <configfile finalname="${karaf.etc}/decathlon.logistique.as400.cfg" override="false">
+            mvn:${project.groupId}/as400-connection-factories/${project.version}/cfg/decathlon.logistique.as400
+        </configfile>
+
+    </feature>
+
+    <feature name="LOGEcomAs400ToTwist" version="${project.version}" install="auto">
+        <details>${project.description}</details>
+
+        <feature version="${project.version}">as400-connection-factories</feature>
+        <feature version="${decathlon.fwk.version}">fwk-component-trace</feature>
+
+        <bundle start-level="100">mvn:${project.groupId}/LOGEcom-AS400ToTwist-routes/${project.version}</bundle>
+
+        <configfile finalname="${karaf.etc}/decathlon.logistique.as400totwist.cfg" override="false">
+            mvn:${project.groupId}/LOGEcom-AS400ToTwist-routes/${project.version}/cfg/decathlon.logistique.as400totwist
+        </configfile>
+    </feature>
+    
+    <feature name="as400Traces" version="${project.version}" install="auto">
+        <details>${project.description}</details>
+
+        <feature version="${project.version}">as400-connection-factories</feature>
+        <feature version="${decathlon.fwk.version}">fwk-component-trace</feature>
+
+        <bundle start-level="100">mvn:${project.groupId}/as400-traces-routes/${project.version}</bundle>
+
+        <configfile finalname="${karaf.etc}/decathlon.logistique.as400Traces.cfg" override="false">
+            mvn:${project.groupId}/as400-traces-routes/${project.version}/cfg/decathlon.logistique.as400Traces
+        </configfile>
+    </feature>	
+
+    <feature name="LOGEcomItems" version="${project.version}" install="auto">
+        <details>${project.description}</details>
+
+        <feature version="${project.version}">as400-connection-factories</feature>
+        <feature version="${decathlon.fwk.version}">fwk-component-trace</feature>
+
+        <bundle start-level="100">mvn:${project.groupId}/LOGEcomItems-routes/${project.version}</bundle>
+
+        <configfile finalname="${karaf.etc}/decathlon.logistique.LOGEcomItems.cfg" override="false">
+            mvn:${project.groupId}/LOGEcomItems-routes/${project.version}/cfg/decathlon.logistique.LOGEcomItems
+        </configfile>
+    </feature>
+
+    <feature name="LOGEcomToAS400" version="${project.version}" install="auto">
+        <details>${project.description}</details>
+
+        <feature version="${project.version}">as400-connection-factories</feature>
+        <feature version="${decathlon.fwk.version}">fwk-component-trace</feature>
+
+        <bundle start-level="100">mvn:${project.groupId}/LOGEcom-toAS400-routes/${project.version}</bundle>
+
+        <configfile finalname="${karaf.etc}/decathlon.logistique.EcomToAS400.cfg" override="false">
+            mvn:${project.groupId}/LOGEcom-toAS400-routes/${project.version}/cfg/decathlon.logistique.EcomToAS400
+        </configfile>
+    </feature>
+    <feature name="LOGSortFlows" version="${project.version}" install="auto">
+        <details>${project.description}</details>
+
+        <feature>jndi</feature>
+        <feature>jms</feature>
+        <feature version="${camel.version}">camel-blueprint</feature>
+        <feature version="${camel.version}">camel-core</feature>
+        <feature version="${camel.version}">camel-jms</feature>
+
+        <feature version="${decathlon.fwk.version}">fwk-component-trace</feature>
+
+        <bundle start-level="100">mvn:${project.groupId}/LOGSortFlows-routes/${project.version}</bundle>
+
+        <configfile finalname="${karaf.etc}/decathlon.logistique.LOGSortGroupOfStores.cfg" override="false">
+            mvn:${project.groupId}/LOGSortFlows-routes/${project.version}/cfg/decathlon.logistique.LOGSortFlows
+        </configfile>
+    </feature>
+
+    <feature name="As400Mapping" version="${project.version}" install="auto">
+        <details>${project.description}</details>
+
+        <feature>jndi</feature>
+        <feature>jms</feature>
+        <feature version="${camel.version}">camel-blueprint</feature>
+        <feature version="${camel.version}">camel-core</feature>
+        <feature version="${camel.version}">camel-jms</feature>
+        <feature version="${camel.version}">camel-jaxb</feature>
+
+        <feature version="${decathlon.fwk.version}">fwk-component-trace</feature>
+
+        <bundle start-level="100">mvn:${project.groupId}/as400-mapping-routes/${project.version}</bundle>
+
+        <configfile finalname="${karaf.etc}/decathlon.logistique.LOGSortFlows.cfg" override="false">
+            mvn:${project.groupId}/as400-mapping-routes/${project.version}/cfg/decathlon.logistique.as400.mapping
+        </configfile>
+    </feature>
+
+</features>
+

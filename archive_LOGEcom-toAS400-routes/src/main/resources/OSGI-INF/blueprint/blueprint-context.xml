@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		   xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0"
+		   xsi:schemaLocation="
+		   	http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+       	   	http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0 http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0/blueprint-cm.xsd
+			http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd">
+
+	<cm:property-placeholder id="decathlon.logistique.EcomToAS400" persistent-id="decathlon.logistique.EcomToAS400">
+		<cm:default-properties>
+			<cm:property name="jms.input.queue" value="LOGEcomReturns"/>
+		</cm:default-properties>
+	</cm:property-placeholder>
+
+	<reference id="connectionFactory" interface="javax.jms.ConnectionFactory" filter="(osgi.jndi.service.name=jms/broker-local)" />
+
+	<bean id="jmsConfig" class="org.apache.camel.component.jms.JmsConfiguration">
+		<property name="connectionFactory" ref="connectionFactory"/>
+	</bean>
+
+	<bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
+		<argument ref="jmsConfig"/>
+	</bean>
+
+	<bean id="message" class="com.oxit.flow.message.Message" />
+
+	<bean id="LOGEcomReturnsRoute" class="com.oxit.flow.logistique.ecomtoas400.LOGEcomToAs400Route">
+        <argument value="${ecomreturns.enabled}" />
+        <argument value="LOGEcomReturns" />
+        <argument value="${ecomreturns.jms.input.queue}" />
+        <argument value="${ecomreturns.jms.output.queue}" />
+    </bean>
+    <bean id="LOGEcomClickNCollectRoute" class="com.oxit.flow.logistique.ecomtoas400.LOGEcomToAs400Route">
+        <argument value="${ecomclickncollect.enabled}" />
+        <argument value="LOGEcomClickNCollectRoute" />
+        <argument value="${ecomclickncollect.jms.input.queue}" />
+        <argument value="${ecomclickncollect.jms.output.queue}" />
+    </bean>
+    <bean id="LOGEcomPickReleaseRoute" class="com.oxit.flow.logistique.ecomtoas400.LOGEcomToAs400Route">
+        <argument value="${ecompickrelease.enabled}" />
+        <argument value="LOGEcomPickReleaseRoute" />
+        <argument value="${ecompickrelease.jms.input.queue}" />
+        <argument value="${ecompickrelease.jms.output.queue}" />
+    </bean>
+
+	<camelContext id="log-ecomToAS400" xmlns="http://camel.apache.org/schema/blueprint">
+		<propertyPlaceholder id="properties" location="blueprint:decathlon.logistique.EcomToAS400"/>
+		<routeBuilder ref="LOGEcomReturnsRoute" />
+        <routeBuilder ref="LOGEcomClickNCollectRoute" />
+        <routeBuilder ref="LOGEcomPickReleaseRoute" />
+	</camelContext>
+</blueprint>

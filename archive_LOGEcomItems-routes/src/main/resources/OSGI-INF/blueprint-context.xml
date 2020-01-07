@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		   xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0"
+		   xsi:schemaLocation="
+		   	http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+       	   	http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0 http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0/blueprint-cm.xsd
+			http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd">
+
+	<cm:property-placeholder id="decathlon.logistique.LOGEcomItems" persistent-id="decathlon.logistique.LOGEcomItems">
+		<cm:default-properties>
+			<cm:property name="jms.input.queue" value="LOGEcomItems"/>
+            <cm:property name="jms.output.queue" value="LOGEcomItems"/>
+            <cm:property name="as400.alias.list" value=""/>
+		</cm:default-properties>
+	</cm:property-placeholder>
+
+	<reference id="connectionFactory" interface="javax.jms.ConnectionFactory" filter="(osgi.jndi.service.name=jms/broker-local)" />
+
+	<bean id="jmsConfig" class="org.apache.camel.component.jms.JmsConfiguration">
+		<property name="connectionFactory" ref="connectionFactory"/>
+	</bean>
+
+	<bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
+		<argument ref="jmsConfig"/>
+	</bean>
+
+	<bean id="message" class="com.oxit.flow.message.Message" />
+
+	<bean id="LOGEcomItemsRoute" class="com.oxit.flow.logistique.items.LOGEcomItemsRoute" />
+
+	<camelContext id="log-ecomitems" xmlns="http://camel.apache.org/schema/blueprint">
+		<propertyPlaceholder id="properties" location="blueprint:decathlon.logistique.LOGEcomItems"/>
+		<routeBuilder ref="LOGEcomItemsRoute" />
+	</camelContext>
+</blueprint>

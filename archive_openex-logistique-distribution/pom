@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!--
+      Licensed to the Apache Software Foundation (ASF) under one or more
+      contributor license agreements.  See the NOTICE file distributed with
+      this work for additional information regarding copyright ownership.
+      The ASF licenses this file to You under the Apache License, Version 2.0
+      (the "License"); you may not use this file except in compliance with
+      the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+      Unless required by applicable law or agreed to in writing, software
+      distributed under the License is distributed on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+      See the License for the specific language governing permissions and
+      limitations under the License.
+    -->
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.oxit.flow.logistique</groupId>
+        <artifactId>openex-logistique</artifactId>
+        <version>2.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>openex-logistique-distribution</artifactId>
+    <packaging>karaf-assembly</packaging>
+
+    <name>Decathlon :: openex-logistique :: server distribution</name>
+    <description>openex-logistique packaged server</description>
+
+    <repositories>
+        <repository>
+            <id>nexus.osiris.withoxylane.com</id>
+            <name>Nexus Decathlon</name>
+            <url>http://nexus.osiris.withoxylane.com/content/groups/ManagedRepositories/</url>
+            <releases>
+            </releases>
+            <snapshots>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.karaf.features</groupId>
+            <artifactId>framework</artifactId>
+            <version>${karaf.version}</version>
+            <type>kar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.karaf.features</groupId>
+            <artifactId>standard</artifactId>
+            <version>${karaf.version}</version>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
+            <type>xml</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.karaf.features</groupId>
+            <artifactId>spring</artifactId>
+            <version>${karaf.version}</version>
+            <classifier>features</classifier>
+            <type>xml</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.karaf.features</groupId>
+            <artifactId>enterprise</artifactId>
+            <version>${karaf.version}</version>
+            <classifier>features</classifier>
+            <type>xml</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.hawt</groupId>
+            <artifactId>hawtio-karaf</artifactId>
+            <version>${hawtio.version}</version>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
+            <type>xml</type>
+        </dependency>
+        <dependency>
+            <groupId>com.oxit.flow</groupId>
+            <artifactId>hawtio-plugin-hystrix</artifactId>
+            <version>1.0.0</version>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
+            <type>xml</type>
+        </dependency>
+        <dependency>
+            <groupId>com.oxit.flow.camel-fwk</groupId>
+            <artifactId>fwk-features</artifactId>
+            <version>${decathlon.fwk.version}</version>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
+            <type>xml</type>
+        </dependency>
+        <dependency>
+            <groupId>com.oxit.flow.logistique</groupId>
+            <artifactId>openex-logistique-features</artifactId>
+            <version>${project.version}</version>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
+            <type>xml</type>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>jenkins</directory>
+                <targetPath>../jenkins</targetPath>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+        </resources>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.karaf.tooling</groupId>
+                    <artifactId>karaf-maven-plugin</artifactId>
+                    <version>${karaf.version}</version>
+                    <extensions>true</extensions>
+                </plugin>
+                <plugin>
+                    <!-- Override version for maven-install-plugin because there is a bug in
+                     3.0.0-M1 preventing installing of modules with packaging of feature
+                     see: https://issues.apache.org/jira/browse/MINSTALL-151
+                     To remove when karaf-maven-plugin 4.1.7 is released -->
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>2.5.2</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>process-resources</id>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.karaf.tooling</groupId>
+                <artifactId>karaf-maven-plugin</artifactId>
+                <configuration>
+                    <installedFeatures></installedFeatures>
+                    <startupFeatures />
+                    <bootFeatures>
+                        <feature>standard</feature>
+                        <feature>hawtio</feature>
+
+                        <feature>fwk-common-dependencies</feature>
+                        <feature>fwk-component-wmq</feature>
+                        <feature>fwk-component-amq</feature>
+                        <feature>fwk-monitoring</feature>
+                        <feature>fwk-component-trace</feature>
+                        <feature>fwk-jms-bridge</feature>
+                        <feature>fwk-rest-message</feature>
+                        <feature>as400-connection-factories</feature>
+                        <feature>as400Traces</feature>
+                        <feature>LOGEcomItems</feature>
+                        <feature>LOGSortFlows</feature>
+                        <feature>LOGEcomAs400ToTwist</feature>
+                        <feature>LOGEcomToAS400</feature>
+                        <feature>As400Mapping</feature>
+                    </bootFeatures>
+                    <javase>${java.version}</javase>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

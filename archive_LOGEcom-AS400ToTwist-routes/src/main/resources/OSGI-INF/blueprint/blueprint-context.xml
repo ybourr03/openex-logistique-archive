@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		   xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0"
+		   xsi:schemaLocation="
+		   	http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+       	   	http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0 http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0/blueprint-cm.xsd
+			http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd">
+
+	<cm:property-placeholder id="decathlon.logistique.as400totwist" persistent-id="decathlon.logistique.as400totwist">
+		<cm:default-properties>
+			<cm:property name="logecom.to.twist.enable" value="true"/>
+		</cm:default-properties>
+	</cm:property-placeholder>
+
+	<reference id="connectionFactory" interface="javax.jms.ConnectionFactory" filter="(osgi.jndi.service.name=jms/broker-local)" />
+
+	<reference id="configAdmin" interface="org.osgi.service.cm.ConfigurationAdmin" />
+
+	<bean id="jmsConfig" class="org.apache.camel.component.jms.JmsConfiguration">
+		<property name="connectionFactory" ref="connectionFactory"/>
+	</bean>
+
+	<bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
+		<argument ref="jmsConfig"/>
+	</bean>
+
+	<bean id="message" class="com.oxit.flow.message.Message" />
+
+    <!-- LOGEcomBooking -->
+	<bean id="bookingConfigService" class="com.oxit.flow.logistique.logecom.as400totwist.service.As400ToTwistConfigService">
+	    <argument value="logecombooking" />
+		<argument ref="configAdmin" />
+		<argument value="decathlon.logistique.as400totwist" />
+	</bean>
+	
+	<bean id="logEcomBookingRoute" class="com.oxit.flow.logistique.logecom.as400totwist.route.LOGEcomAs400ToTwistRoute">
+		<property name="as400ToTwistConfigService" ref="bookingConfigService"/>
+	</bean>
+	
+	<!-- LOGEcomParcel -->
+	<bean id="parcelConfigService" class="com.oxit.flow.logistique.logecom.as400totwist.service.As400ToTwistConfigService">
+	    <argument value="logecomparcel" />
+		<argument ref="configAdmin" />
+		<argument value="decathlon.logistique.as400totwist" />
+	</bean>
+	
+	<bean id="logEcomParcelRoute" class="com.oxit.flow.logistique.logecom.as400totwist.route.LOGEcomAs400ToTwistRoute">
+		<property name="as400ToTwistConfigService" ref="parcelConfigService"/>
+	</bean>
+	
+	<!-- LOGEcomPickScheduling -->
+	<bean id="pickschedulingConfigService" class="com.oxit.flow.logistique.logecom.as400totwist.service.As400ToTwistConfigService">
+	    <argument value="logecompickscheduling" />
+		<argument ref="configAdmin" />
+		<argument value="decathlon.logistique.as400totwist" />
+	</bean>
+	
+	<bean id="logEcomPickSchedulingRoute" class="com.oxit.flow.logistique.logecom.as400totwist.route.LOGEcomAs400ToTwistRoute">
+		<property name="as400ToTwistConfigService" ref="pickschedulingConfigService"/>
+	</bean>
+	
+
+	<camelContext id="log-as400totwist" xmlns="http://camel.apache.org/schema/blueprint">
+		<propertyPlaceholder id="properties" location="blueprint:decathlon.logistique.as400totwist"/>
+		<routeBuilder ref="logEcomBookingRoute" />
+		<routeBuilder ref="logEcomParcelRoute" />
+		<routeBuilder ref="logEcomPickSchedulingRoute" />
+	</camelContext>
+</blueprint>

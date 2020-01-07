@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		   xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0"
+		   xsi:schemaLocation="
+		   	http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+       	   	http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0 http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0/blueprint-cm.xsd
+			http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd">
+
+	<cm:property-placeholder id="decathlon.logistique.LOGSortFlows" persistent-id="decathlon.logistique.LOGSortFlows">
+		<cm:default-properties>			
+			<cm:property name="logSortGroupOfStores.jms.queue" value="LOGSortGroupOfStores"/>
+			<cm:property name="logSortGroupOfStores.output.queue" value="LOGSortGroupOfStores"/>
+			<cm:property name="logSortGroupOfStores.jms.concurrentConsumers" value="1"/>
+			<cm:property name="logSortGroupOfStores.jms.maxConcurrentConsumers" value="4"/>
+			
+			<cm:property name="logSortMaterialMachine.jms.queue" value="LOGSortMaterialMachine"/>
+			<cm:property name="logSortMaterialMachine.output.queue" value="LOGSortMaterialMachine"/>
+			<cm:property name="logSortMaterialMachine.jms.concurrentConsumers" value="1"/>
+			<cm:property name="logSortMaterialMachine..jms.maxConcurrentConsumers" value="4"/>
+			
+			<cm:property name="logSortWarehouseMachine.jms.queue" value="LOGSortWarehouseMachine"/>
+			<cm:property name="logSortWarehouseMachine.output.queue" value="LOGSortWarehouseMachine"/>
+			<cm:property name="logSortWarehouseMachine.jms.concurrentConsumers" value="1"/>
+			<cm:property name="logSortWarehouseMachine.jms.maxConcurrentConsumers" value="4"/>
+			
+			
+		</cm:default-properties>
+	</cm:property-placeholder>
+
+	<reference id="connectionFactory" interface="javax.jms.ConnectionFactory" filter="(osgi.jndi.service.name=jms/broker-local)" />
+
+	<bean id="jmsConfig" class="org.apache.camel.component.jms.JmsConfiguration">
+		<property name="connectionFactory" ref="connectionFactory"/>
+	</bean>
+
+	<bean id="jms" class="org.apache.camel.component.jms.JmsComponent">
+		<argument ref="jmsConfig"/>
+	</bean>
+
+	<bean id="message" class="com.oxit.flow.message.Message" />
+
+	<!-- <bean id="LOGSortGroupOfStoresRoute" class="com.oxit.flow.logistique.logsortgroupofstores.route.LOGSortGroupOfStoresRoute" /> -->
+	
+	<bean id="logSortGroupOfStoresRoute" class="com.oxit.flow.logistique.logsortflows.route.LOGSortFlowsRoute">
+		<property name="flowName" value="LOGSortGroupOfStores" />
+		<property name="jmsQueueName" value="${logSortGroupOfStores.jms.queue}" />
+		<property name="jmsOutputQueueName" value="${logSortGroupOfStores.output.queue}"/>
+		<property name="jmsConcurrentConsumers" value="${logSortGroupOfStores.jms.concurrentConsumers}" />
+		<property name="jmsMaxConcurrentConsumers" value="${logSortGroupOfStores.jms.maxConcurrentConsumers}" />
+		<property name="as400MQReceivers" value="${logSortGroupOfStores.as400.receivers}"/>
+	</bean>
+	
+	<bean id="logSortMaterialMachineRoute" class="com.oxit.flow.logistique.logsortflows.route.LOGSortFlowsRoute">
+		<property name="flowName" value="LOGSortMaterialMachine" />
+		<property name="jmsQueueName" value="${logSortMaterialMachine.jms.queue}" />
+		<property name="jmsOutputQueueName" value="${logSortMaterialMachine.output.queue}"/>
+		<property name="jmsConcurrentConsumers" value="${logSortMaterialMachine.jms.concurrentConsumers}" />
+		<property name="jmsMaxConcurrentConsumers" value="${logSortMaterialMachine.jms.maxConcurrentConsumers}" />
+		<property name="as400MQReceivers" value="${logSortMaterialMachine.as400.receivers}"/>
+	</bean>
+	
+	<bean id="logSortWarehouseMachineRoute" class="com.oxit.flow.logistique.logsortflows.route.LOGSortFlowsRoute">
+		<property name="flowName" value="LOGSortWarehouseMachine" />
+		<property name="jmsQueueName" value="${logSortWarehouseMachine.jms.queue}" />
+		<property name="jmsOutputQueueName" value="${logSortWarehouseMachine.output.queue}"/>
+		<property name="jmsConcurrentConsumers" value="${logSortWarehouseMachine.jms.concurrentConsumers}" />
+		<property name="jmsMaxConcurrentConsumers" value="${logSortWarehouseMachine.jms.maxConcurrentConsumers}" />
+		<property name="as400MQReceivers" value="${logSortWarehouseMachine.as400.receivers}"/>
+	</bean>
+	
+
+	<camelContext id="LOGSortFlowsContext" autoStartup="true" xmlns="http://camel.apache.org/schema/blueprint">
+		<propertyPlaceholder id="properties" location="blueprint:decathlon.logistique.LOGSortFlows"/>
+		<routeBuilder ref="logSortGroupOfStoresRoute" />
+		<routeBuilder ref="logSortMaterialMachineRoute" />
+		<routeBuilder ref="logSortWarehouseMachineRoute" />
+	</camelContext>
+</blueprint>

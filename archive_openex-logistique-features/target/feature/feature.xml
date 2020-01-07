@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features name="decathlon-openex-logistique-features-2.0.0-SNAPSHOT" xmlns="http://karaf.apache.org/xmlns/features/v1.3.0">
+    <repository>mvn:org.apache.activemq/activemq-karaf/5.15.6/xml/features</repository>
+    <repository>mvn:org.apache.camel.karaf/apache-camel/2.23.0/xml/features</repository>
+    <repository>mvn:com.oxit.flow.camel-fwk/fwk-features/1.7.0/xml/features</repository>
+
+    <feature name="as400-connection-factories" version="2.0.0-SNAPSHOT" install="auto">
+        <details>Create and exposes the AS400 connection factories</details>
+
+        <feature>jndi</feature>
+        <feature>jms</feature>
+        <feature version="2.23.0">camel-blueprint</feature>
+        <feature version="2.23.0">camel-core</feature>
+        <feature version="2.23.0">camel-jms</feature>
+        <feature version="1.7.0">fwk-component-wmq</feature>
+
+        <bundle start-level="50">mvn:com.oxit.flow.logistique/as400-connection-factories/2.0.0-SNAPSHOT</bundle>
+        <configfile finalname="${karaf.etc}/decathlon.logistique.as400.cfg" override="false">
+            mvn:com.oxit.flow.logistique/as400-connection-factories/2.0.0-SNAPSHOT/cfg/decathlon.logistique.as400
+        </configfile>
+
+    </feature>
+
+    <feature name="LOGEcomAs400ToTwist" version="2.0.0-SNAPSHOT" install="auto">
+        <details>openex-logistique feature list</details>
+
+        <feature version="2.0.0-SNAPSHOT">as400-connection-factories</feature>
+        <feature version="1.7.0">fwk-component-trace</feature>
+
+        <bundle start-level="100">mvn:com.oxit.flow.logistique/LOGEcom-AS400ToTwist-routes/2.0.0-SNAPSHOT</bundle>
+
+        <configfile finalname="${karaf.etc}/decathlon.logistique.as400totwist.cfg" override="false">
+            mvn:com.oxit.flow.logistique/LOGEcom-AS400ToTwist-routes/2.0.0-SNAPSHOT/cfg/decathlon.logistique.as400totwist
+        </configfile>
+    </feature>
+    
+    <feature name="as400Traces" version="2.0.0-SNAPSHOT" install="auto">
+        <details>openex-logistique feature list</details>
+
+        <feature version="2.0.0-SNAPSHOT">as400-connection-factories</feature>
+        <feature version="1.7.0">fwk-component-trace</feature>
+
+        <bundle start-level="100">mvn:com.oxit.flow.logistique/as400-traces-routes/2.0.0-SNAPSHOT</bundle>
+
+        <configfile finalname="${karaf.etc}/decathlon.logistique.as400Traces.cfg" override="false">
+            mvn:com.oxit.flow.logistique/as400-traces-routes/2.0.0-SNAPSHOT/cfg/decathlon.logistique.as400Traces
+        </configfile>
+    </feature>	
+
+    <feature name="LOGEcomItems" version="2.0.0-SNAPSHOT" install="auto">
+        <details>openex-logistique feature list</details>
+
+        <feature version="2.0.0-SNAPSHOT">as400-connection-factories</feature>
+        <feature version="1.7.0">fwk-component-trace</feature>
+
+        <bundle start-level="100">mvn:com.oxit.flow.logistique/LOGEcomItems-routes/2.0.0-SNAPSHOT</bundle>
+
+        <configfile finalname="${karaf.etc}/decathlon.logistique.LOGEcomItems.cfg" override="false">
+            mvn:com.oxit.flow.logistique/LOGEcomItems-routes/2.0.0-SNAPSHOT/cfg/decathlon.logistique.LOGEcomItems
+        </configfile>
+    </feature>
+
+    <feature name="LOGEcomToAS400" version="2.0.0-SNAPSHOT" install="auto">
+        <details>openex-logistique feature list</details>
+
+        <feature version="2.0.0-SNAPSHOT">as400-connection-factories</feature>
+        <feature version="1.7.0">fwk-component-trace</feature>
+
+        <bundle start-level="100">mvn:com.oxit.flow.logistique/LOGEcom-toAS400-routes/2.0.0-SNAPSHOT</bundle>
+
+        <configfile finalname="${karaf.etc}/decathlon.logistique.EcomToAS400.cfg" override="false">
+            mvn:com.oxit.flow.logistique/LOGEcom-toAS400-routes/2.0.0-SNAPSHOT/cfg/decathlon.logistique.EcomToAS400
+        </configfile>
+    </feature>
+    <feature name="LOGSortFlows" version="2.0.0-SNAPSHOT" install="auto">
+        <details>openex-logistique feature list</details>
+
+        <feature>jndi</feature>
+        <feature>jms</feature>
+        <feature version="2.23.0">camel-blueprint</feature>
+        <feature version="2.23.0">camel-core</feature>
+        <feature version="2.23.0">camel-jms</feature>
+
+        <feature version="1.7.0">fwk-component-trace</feature>
+
+        <bundle start-level="100">mvn:com.oxit.flow.logistique/LOGSortFlows-routes/2.0.0-SNAPSHOT</bundle>
+
+        <configfile finalname="${karaf.etc}/decathlon.logistique.LOGSortGroupOfStores.cfg" override="false">
+            mvn:com.oxit.flow.logistique/LOGSortFlows-routes/2.0.0-SNAPSHOT/cfg/decathlon.logistique.LOGSortFlows
+        </configfile>
+    </feature>
+
+    <feature name="As400Mapping" version="2.0.0-SNAPSHOT" install="auto">
+        <details>openex-logistique feature list</details>
+
+        <feature>jndi</feature>
+        <feature>jms</feature>
+        <feature version="2.23.0">camel-blueprint</feature>
+        <feature version="2.23.0">camel-core</feature>
+        <feature version="2.23.0">camel-jms</feature>
+        <feature version="2.23.0">camel-jaxb</feature>
+
+        <feature version="1.7.0">fwk-component-trace</feature>
+
+        <bundle start-level="100">mvn:com.oxit.flow.logistique/as400-mapping-routes/2.0.0-SNAPSHOT</bundle>
+
+        <configfile finalname="${karaf.etc}/decathlon.logistique.LOGSortFlows.cfg" override="false">
+            mvn:com.oxit.flow.logistique/as400-mapping-routes/2.0.0-SNAPSHOT/cfg/decathlon.logistique.as400.mapping
+        </configfile>
+    </feature>
+
+</features>
+
